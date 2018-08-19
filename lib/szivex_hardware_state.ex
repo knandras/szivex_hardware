@@ -29,7 +29,8 @@ defmodule SzivexHardware.State do
 
   @impl true
   def init(_) do
-  	IO.puts("State started.")
+    IO.puts("State started.")
+
     {:ok,
      %{
        :state => :idle,
@@ -86,8 +87,6 @@ defmodule SzivexHardware.State do
            }}
 
         {%{:pump => false, :emergency => false, :level => false, :relay => false}, _} ->
-          relay_off()
-
           {:noreply,
            %{
              :state => :idle,
@@ -97,12 +96,26 @@ defmodule SzivexHardware.State do
            }, 86_400_000}
 
         {%{:emergency => true}, _} ->
+          relay_off()
+
           {:noreply,
-           %{:state => :error, :state_since => Time.utc_now(), :prev_state => state[:state], :reason => "CRITICAL: Emergency triggered"}}
+           %{
+             :state => :error,
+             :state_since => Time.utc_now(),
+             :prev_state => state[:state],
+             :reason => "CRITICAL: Emergency triggered"
+           }}
 
         _ ->
+          relay_off()
+
           {:noreply,
-           %{:state => :error, :state_since => Time.utc_now(), :prev_state => state[:state], :reason => "CRITICAL: None of the happy path conditions matched."}}
+           %{
+             :state => :error,
+             :state_since => Time.utc_now(),
+             :prev_state => state[:state],
+             :reason => "CRITICAL: None of the happy path conditions matched."
+           }}
       end
 
     IO.inspect(retval, label: "Retval")
